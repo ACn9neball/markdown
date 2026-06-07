@@ -32,10 +32,10 @@ fn main() {
     database::db_setup(path).expect("!Create");
     let args = Args::parse();
     match &args.command {
-        Commands::Add => input::start().expect(""),
+        Commands::Add => input::start(0, 0).expect(""),
         Commands::Display { id } => display::view(id.clone()).expect(""),
         Commands::List => list::display().expect(""),
-        Commands::Edit { id } => {}
+        Commands::Edit { id } => input::start(1, id.clone()).expect(""),
         Commands::Search { name } => search::display(name.clone()).expect(""),
     }
 }

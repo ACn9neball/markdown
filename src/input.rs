@@ -21,31 +21,31 @@ struct Projects {
 
 #[derive(Debug)]
 struct Features {
-    id: i64,
+    _id: i64,
     feature: String,
     unique_id: i64,
 }
 
 #[derive(Debug)]
 struct Languages {
-    id: i64,
+    _id: i64,
     language: String,
     unique_id: i64,
 }
 
-pub fn start() -> color_eyre::Result<()> {
+pub fn start(function: i64, id: i64) -> color_eyre::Result<()> {
     color_eyre::install()?;
 
     let mut terminal = ratatui::init();
 
-    let result = run(&mut terminal);
+    let result = run(&mut terminal, function, id);
 
     ratatui::restore();
 
     result
 }
 
-fn run(terminal: &mut DefaultTerminal) -> color_eyre::Result<()> {
+fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Result<()> {
     let mut switch: usize = 0;
     let mut count = 0;
     let mut edt_title = TextArea::default();
@@ -54,6 +54,65 @@ fn run(terminal: &mut DefaultTerminal) -> color_eyre::Result<()> {
     let mut edt_features = TextArea::default();
     let mut edt_languages = TextArea::default();
     let mut edt_progress = TextArea::default();
+
+    if function == 1 {
+        let c = Connection::open(DB)?;
+        let mut projects = c.prepare("SELECT * FROM projects WHERE id = ?1")?;
+        let mut languages = c.prepare("SELECT * FROM languages")?;
+        let mut features = c.prepare("SELECT * FROM features")?;
+        let project_iter = projects.query_map([id], |row| {
+            Ok(Projects {
+                id: row.get(0)?,
+                title: row.get(1)?,
+                b_description: row.get(2)?,
+                d_description: row.get(3)?,
+                progress: row.get(4)?,
+            })
+        })?;
+
+        let language_iter = languages.query_map([], |row| {
+            Ok(Languages {
+                _id: row.get(0)?,
+                language: row.get(1)?,
+                unique_id: row.get(2)?,
+            })
+        })?;
+
+        let feature_iter = features.query_map([], |row| {
+            Ok(Features {
+                _id: row.get(0)?,
+                feature: row.get(1)?,
+                unique_id: row.get(2)?,
+            })
+        })?;
+
+        for project in project_iter {
+            let p = project.unwrap();
+            edt_title.insert_str(p.title);
+            edt_b.insert_str(p.b_description);
+            edt_d.insert_str(p.d_description);
+            edt_progress.insert_str(p.progress);
+        }
+
+        for language in language_iter {
+            let l = language.unwrap();
+            let unique_id: i64 = l.unique_id;
+            if id == unique_id {
+                edt_languages.insert_str(l.language);
+                edt_languages.insert_newline();
+            }
+        }
+
+        for feature in feature_iter {
+            let f = feature.unwrap();
+            let unique_id: i64 = f.unique_id;
+            if id == unique_id {
+                edt_features.insert_str(f.feature);
+                edt_features.insert_newline();
+            }
+        }
+    }
+
     let colors = vec![
         Color::Reset,
         Color::Reset,
@@ -179,10 +238,63 @@ fn run(terminal: &mut DefaultTerminal) -> color_eyre::Result<()> {
                                     progress: row.get(4)?,
                                 })
                             })?;
-                            c.execute(
+                            if function == 0 {
+                                c.execute(
                                 "INSERT INTO projects (title, bDescription, dDescription, progress) VALUES (?1, ?2, ?3, ?4)",
                                 (&project.title, &project.b_description, &project.d_description, &project.progress),
                             )?;
+                            } else if function == 1 {
+                                c.execute(
+                                    "UPDATE projects SET 
+                                    title = COALESCE(NULLIF(?2, ''), title), 
+                                    bDescription = COALESCE(NULLIF(?3, 0), bDescription), 
+                                    dDescription = COALESCE(NULLIF(?4, ''),  dDescription), 
+                                    progress = COALESCE(NULLIF(?5, ''), progress) 
+                                    WHERE id = ?1",
+                                    (
+                                        id,
+                                        &project.title,
+                                        &project.b_description,
+                                        &project.d_description,
+                                        &project.progress,
+                                    ),
+                                )?;
+                            }
+                            if function == 1 {
+                                let c = Connection::open(DB)?;
+                                let mut languages = c.prepare("SELECT * FROM languages")?;
+                                let language_iter = languages.query_map([], |row| {
+                                    Ok(Languages {
+                                        _id: row.get(0)?,
+                                        language: row.get(1)?,
+                                        unique_id: row.get(2)?,
+                                    })
+                                })?;
+                                for language in language_iter {
+                                    let l = language.unwrap();
+                                    let unique_id = l.unique_id;
+                                    if unique_id == id {
+                                        c.execute("DELETE FROM languages WHERE id = ?1", (l._id,))?;
+                                    }
+                                }
+
+                                let mut features = c.prepare("SELECT * FROM features")?;
+                                let feature_iter = features.query_map([], |row| {
+                                    Ok(Features {
+                                        _id: row.get(0)?,
+                                        feature: row.get(1)?,
+                                        unique_id: row.get(2)?,
+                                    })
+                                })?;
+                                for feature in feature_iter {
+                                    let f = feature.unwrap();
+                                    let unique_id = f.unique_id;
+                                    if unique_id == id {
+                                        c.execute("DELETE FROM features WHERE id = ?1", (f._id,))?;
+                                    }
+                                }
+                            }
+
                             let mut id: i64 = 0;
                             for pro in project_iter {
                                 let p = pro.unwrap();
@@ -192,7 +304,7 @@ fn run(terminal: &mut DefaultTerminal) -> color_eyre::Result<()> {
                             for i in 0..features.lines().count() {
                                 let mut feat = features.lines();
                                 let feature = Features {
-                                    id: 0,
+                                    _id: 0,
                                     feature: feat.nth(i).expect("").to_string(),
                                     unique_id: id,
                                 };
@@ -205,7 +317,7 @@ fn run(terminal: &mut DefaultTerminal) -> color_eyre::Result<()> {
                             for i in 0..languages.lines().count() {
                                 let mut lang = languages.lines();
                                 let language = Languages {
-                                    id: 0,
+                                    _id: 0,
                                     language: lang.nth(i).expect("").to_string(),
                                     unique_id: id,
                                 };
