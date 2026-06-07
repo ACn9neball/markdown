@@ -2,6 +2,7 @@ mod database;
 mod display;
 mod input;
 mod list;
+mod search;
 
 use clap::{Parser, Subcommand};
 
@@ -35,6 +36,6 @@ fn main() {
         Commands::Display { id } => display::view(id.clone()).expect(""),
         Commands::List => list::display().expect(""),
         Commands::Edit { id } => {}
-        Commands::Search { name } => {}
+        Commands::Search { name } => search::display(name.clone()).expect(""),
     }
 }
