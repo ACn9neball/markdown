@@ -6,7 +6,6 @@ edition = "2024"
 [dependencies]
 color-eyre = "0.6.5"
 ratatui = "0.30.0"
-tui-big-text = "0.8.4"
 ratatui-textarea = "0.8.0"
 rusqlite = { version = "0.39.0", features = ["bundled"] }
 clap = { version = "4.6.1", features = ["derive"] }
