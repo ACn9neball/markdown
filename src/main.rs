@@ -1,6 +1,7 @@
 mod database;
 mod display;
 mod input;
+mod list;
 
 use clap::{Parser, Subcommand};
 
@@ -16,11 +17,13 @@ enum Commands {
     #[command(visible_alias = "-a")]
     Add,
     #[command(visible_alias = "-d")]
-    Display { name: String },
+    Display { id: i64 },
     #[command(visible_alias = "-l")]
     List,
     #[command(visible_alias = "-e")]
-    Edit { name: String },
+    Edit { id: i64 },
+    #[command(visible_alias = "-s")]
+    Search { name: String },
 }
 
 fn main() {
@@ -29,8 +32,9 @@ fn main() {
     let args = Args::parse();
     match &args.command {
         Commands::Add => input::start().expect(""),
-        Commands::Display { name } => {}
-        Commands::List => display::display().expect(""),
-        Commands::Edit { name } => {}
+        Commands::Display { id } => display::view(id.clone()).expect(""),
+        Commands::List => list::display().expect(""),
+        Commands::Edit { id } => {}
+        Commands::Search { name } => {}
     }
 }

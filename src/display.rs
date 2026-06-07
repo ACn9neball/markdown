@@ -1,6 +1,6 @@
-use cli_table::{Cell, Style, Table, format::Justify, print_stdout};
-use rusqlite::Connection;
-use std::error::Error;
+use std::cmp::max;
+
+use rusqlite::{Connection, Result};
 
 #[derive(Debug)]
 struct Projects {
@@ -11,12 +11,27 @@ struct Projects {
     progress: String,
 }
 
-pub fn display() -> Result<(), Box<dyn Error>> {
+#[derive(Debug)]
+struct Features {
+    _id: i64,
+    feature: String,
+    unique_id: i64,
+}
+
+#[derive(Debug)]
+struct Languages {
+    _id: i64,
+    language: String,
+    unique_id: i64,
+}
+
+pub fn view(id: i64) -> Result<()> {
     const DB: &str = "markdown.db";
     let c = Connection::open(DB)?;
-
-    let mut all = c.prepare("SELECT * FROM projects")?;
-    let project_iter = all.query_map([], |row| {
+    let mut projects = c.prepare("SELECT * FROM projects")?;
+    let mut languages = c.prepare("SELECT * FROM languages")?;
+    let mut features = c.prepare("SELECT * FROM features")?;
+    let project_iter = projects.query_map([], |row| {
         Ok(Projects {
             id: row.get(0)?,
             title: row.get(1)?,
@@ -25,33 +40,66 @@ pub fn display() -> Result<(), Box<dyn Error>> {
             progress: row.get(4)?,
         })
     })?;
-    let mut data = Vec::new();
+
+    let language_iter = languages.query_map([], |row| {
+        Ok(Languages {
+            _id: row.get(0)?,
+            language: row.get(1)?,
+            unique_id: row.get(2)?,
+        })
+    })?;
+
+    let feature_iter = features.query_map([], |row| {
+        Ok(Features {
+            _id: row.get(0)?,
+            feature: row.get(1)?,
+            unique_id: row.get(2)?,
+        })
+    })?;
+
     for project in project_iter {
         let p = project.unwrap();
-        let wrapped_b_desc = textwrap::fill(&p.b_description, 30);
-        let wrapped_d_desc = textwrap::fill(&p.d_description, 70);
-
-        data.push(vec![
-            p.id.cell().justify(Justify::Right),
-            p.title.cell(),
-            wrapped_b_desc.cell(),
-            wrapped_d_desc.cell(),
-            p.progress.cell(),
-        ]);
+        let unique_id: i64 = p.id;
+        if id == unique_id {
+            println!("{:=^40}", " Project Details ");
+            println!("{:<20} {}", "Title:", p.title);
+            println!("{:<20} {}", "Progress:", p.progress);
+            println!("{:-<40}", "");
+            println!("Basic Description:\n  {}", p.b_description);
+            println!("\nDetailed Description:\n  {}", p.d_description);
+            println!("{:-<40}", "");
+        }
     }
 
-    let table = data
-        .table()
-        .title(vec![
-            "ID".cell().bold(true),
-            "TITLE".cell().bold(true),
-            "BASIC DESCRIPTION".cell().bold(true),
-            "DETAILED DESCRIPTION".cell().bold(true),
-            "PROGRESS".cell().bold(true),
-        ])
-        .bold(true);
+    let mut language_vec: Vec<String> = vec![];
+    for language in language_iter {
+        let l = language.unwrap();
+        let unique_id: i64 = l.unique_id;
+        if id == unique_id {
+            language_vec.push(l.language);
+        }
+    }
 
-    print_stdout(table)?;
+    let mut feature_vec: Vec<String> = vec![];
+    for feature in feature_iter {
+        let f = feature.unwrap();
+        let unique_id: i64 = f.unique_id;
+        if id == unique_id {
+            feature_vec.push(f.feature);
+        }
+    }
+
+    println!("{:<25} {:<25}", "LANGUAGES", "FEATURES");
+    println!("{:<25} {:<25}", "----------", "---------");
+    let max_len = max(language_vec.len(), feature_vec.len());
+    for i in 0..max_len {
+        let language = language_vec.get(i).map(|s| s.as_str()).unwrap_or("");
+        let feature = feature_vec.get(i).map(|s| s.as_str()).unwrap_or("");
+
+        println!("{:<25} {:<25}", language, feature);
+    }
+
+    println!("{:=^40}", "");
 
     Ok(())
 }
