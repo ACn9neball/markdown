@@ -9,6 +9,8 @@ struct Projects {
     b_description: String,
     d_description: String,
     progress: String,
+    path: String,
+    repository: String,
 }
 
 #[derive(Debug)]
@@ -38,6 +40,8 @@ pub fn view(id: i64) -> Result<()> {
             b_description: row.get(2)?,
             d_description: row.get(3)?,
             progress: row.get(4)?,
+            path: row.get(5)?,
+            repository: row.get(6)?,
         })
     })?;
 
@@ -67,6 +71,13 @@ pub fn view(id: i64) -> Result<()> {
             println!("{:-<40}", "");
             println!("Basic Description:\n  {}", p.b_description);
             println!("\nDetailed Description:\n  {}", p.d_description);
+            println!("{:-<40}", "");
+            println!("{:<20} {}", "Directory:", p.path);
+            if p.repository.is_empty() {
+                println!("{:<20} None", "Repository:");
+            } else {
+                println!("{:<20} {}", "Repository:", p.repository);
+            }
             println!("{:-<40}", "");
         }
     }

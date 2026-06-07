@@ -17,6 +17,8 @@ struct Projects {
     b_description: String,
     d_description: String,
     progress: String,
+    path: String,
+    repository: String,
 }
 
 #[derive(Debug)]
@@ -54,6 +56,8 @@ fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Re
     let mut edt_features = TextArea::default();
     let mut edt_languages = TextArea::default();
     let mut edt_progress = TextArea::default();
+    let mut edt_path = TextArea::default();
+    let mut edt_repository = TextArea::default();
 
     if function == 1 {
         let c = Connection::open(DB)?;
@@ -67,6 +71,8 @@ fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Re
                 b_description: row.get(2)?,
                 d_description: row.get(3)?,
                 progress: row.get(4)?,
+                path: row.get(5)?,
+                repository: row.get(6)?,
             })
         })?;
 
@@ -92,6 +98,8 @@ fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Re
             edt_b.insert_str(p.b_description);
             edt_d.insert_str(p.d_description);
             edt_progress.insert_str(p.progress);
+            edt_path.insert_str(p.path);
+            edt_repository.insert_str(p.repository);
         }
 
         for language in language_iter {
@@ -120,6 +128,8 @@ fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Re
         Color::Reset,
         Color::Reset,
         Color::Reset,
+        Color::Reset,
+        Color::Reset,
     ];
 
     loop {
@@ -132,6 +142,8 @@ fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Re
                 &mut edt_features,
                 &mut edt_languages,
                 &mut edt_progress,
+                &mut edt_path,
+                &mut edt_repository,
                 count,
                 switch,
                 colors.clone(),
@@ -143,12 +155,14 @@ fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Re
                 match key.code {
                     KeyCode::Esc => break,
                     KeyCode::Tab => {
-                        let title_text: String = edt_title.lines().join("\n");
-                        let basic_text: String = edt_b.lines().join("\n");
-                        let detailed_text: String = edt_d.lines().join("\n");
-                        let features_text: String = edt_features.lines().join("\n");
-                        let languages_text: String = edt_languages.lines().join("\n");
-                        let progress_text: String = edt_progress.lines().join("\n");
+                        let title_text = edt_title.lines().join("\n");
+                        let basic_text = edt_b.lines().join("\n");
+                        let detailed_text = edt_d.lines().join("\n");
+                        let features_text = edt_features.lines().join("\n");
+                        let languages_text = edt_languages.lines().join("\n");
+                        let progress_text = edt_progress.lines().join("\n");
+                        let path_text = edt_path.lines().join("\n");
+                        let repository_text = edt_repository.lines().join("\n");
                         count = 0;
 
                         if !title_text.is_empty() {
@@ -169,8 +183,11 @@ fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Re
                         if !progress_text.is_empty() {
                             count += 1;
                         }
+                        if !path_text.is_empty() {
+                            count += 1;
+                        }
 
-                        if switch != 5 {
+                        if switch != 7 {
                             switch += 1;
                         } else {
                             switch = 0;
@@ -178,12 +195,14 @@ fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Re
                         continue;
                     }
                     KeyCode::BackTab => {
-                        let title_text: String = edt_title.lines().join("\n");
-                        let basic_text: String = edt_b.lines().join("\n");
-                        let detailed_text: String = edt_d.lines().join("\n");
-                        let features_text: String = edt_features.lines().join("\n");
-                        let languages_text: String = edt_languages.lines().join("\n");
-                        let progress_text: String = edt_progress.lines().join("\n");
+                        let title_text = edt_title.lines().join("\n");
+                        let basic_text = edt_b.lines().join("\n");
+                        let detailed_text = edt_d.lines().join("\n");
+                        let features_text = edt_features.lines().join("\n");
+                        let languages_text = edt_languages.lines().join("\n");
+                        let progress_text = edt_progress.lines().join("\n");
+                        let path_text = edt_path.lines().join("\n");
+                        let repository_text = edt_repository.lines().join("\n");
                         count = 0;
 
                         if !title_text.is_empty() {
@@ -204,21 +223,26 @@ fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Re
                         if !progress_text.is_empty() {
                             count += 1;
                         }
+                        if !path_text.is_empty() {
+                            count += 1;
+                        }
                         if switch != 0 {
                             switch -= 1;
                         } else {
-                            switch = 5;
+                            switch = 7;
                         }
                         continue;
                     }
                     KeyCode::Char('s') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                        if count == 6 {
-                            let title: String = edt_title.lines().join("\n");
-                            let basic: String = edt_b.lines().join("\n");
-                            let detailed: String = edt_d.lines().join("\n");
-                            let features: String = edt_features.lines().join("\n");
-                            let languages: String = edt_languages.lines().join("\n");
-                            let progress: String = edt_progress.lines().join("\n");
+                        if count == 7 {
+                            let title = edt_title.lines().join("\n");
+                            let basic = edt_b.lines().join("\n");
+                            let detailed = edt_d.lines().join("\n");
+                            let features = edt_features.lines().join("\n");
+                            let languages = edt_languages.lines().join("\n");
+                            let progress = edt_progress.lines().join("\n");
+                            let path = edt_path.lines().join("\n");
+                            let repository = edt_repository.lines().join("\n");
 
                             let c = Connection::open(DB)?;
                             let project = Projects {
@@ -227,6 +251,8 @@ fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Re
                                 b_description: basic,
                                 d_description: detailed,
                                 progress: progress,
+                                path: path,
+                                repository: repository,
                             };
                             let mut projects = c.prepare("SELECT * FROM projects")?;
                             let project_iter = projects.query_map([], |row| {
@@ -236,20 +262,24 @@ fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Re
                                     b_description: row.get(2)?,
                                     d_description: row.get(3)?,
                                     progress: row.get(4)?,
+                                    path: row.get(5)?,
+                                    repository: row.get(6)?,
                                 })
                             })?;
                             if function == 0 {
                                 c.execute(
-                                "INSERT INTO projects (title, bDescription, dDescription, progress) VALUES (?1, ?2, ?3, ?4)",
-                                (&project.title, &project.b_description, &project.d_description, &project.progress),
+                                "INSERT INTO projects (title, bDescription, dDescription, progress, path, repository) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                                (&project.title, &project.b_description, &project.d_description, &project.progress, &project.path, &project.repository,),
                             )?;
                             } else if function == 1 {
                                 c.execute(
                                     "UPDATE projects SET 
-                                    title = COALESCE(NULLIF(?2, ''), title), 
-                                    bDescription = COALESCE(NULLIF(?3, 0), bDescription), 
-                                    dDescription = COALESCE(NULLIF(?4, ''),  dDescription), 
-                                    progress = COALESCE(NULLIF(?5, ''), progress) 
+                                    title = COALESCE(NULLIF(?2, ''), title),
+                                    bDescription = COALESCE(NULLIF(?3, 0), bDescription),
+                                    dDescription = COALESCE(NULLIF(?4, ''),  dDescription),
+                                    progress = COALESCE(NULLIF(?5, ''), progress),
+                                    path = COALESCE(NULLIF(?6, ''), path),
+                                    repository = COALESCE(NULLIF(?7, ''), repository)
                                     WHERE id = ?1",
                                     (
                                         id,
@@ -257,6 +287,8 @@ fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Re
                                         &project.b_description,
                                         &project.d_description,
                                         &project.progress,
+                                        &project.path,
+                                        &project.repository,
                                     ),
                                 )?;
                             }
@@ -348,6 +380,12 @@ fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Re
                         5 => {
                             edt_progress.input(key);
                         }
+                        6 => {
+                            edt_path.input(key);
+                        }
+                        7 => {
+                            edt_repository.input(key);
+                        }
                         _ => {}
                     },
                 }
@@ -365,6 +403,8 @@ fn render(
     edt_features: &mut TextArea,
     edt_languages: &mut TextArea,
     edt_progress: &mut TextArea,
+    edt_path: &mut TextArea,
+    edt_repo: &mut TextArea,
     i: usize,
     switch: usize,
     colors: Vec<Color>,
@@ -379,18 +419,21 @@ fn render(
     let inner_area = border.inner(area);
 
     let split = Layout::vertical([
-        Constraint::Ratio(1, 18),
-        Constraint::Ratio(1, 18),
-        Constraint::Ratio(1, 18),
-        Constraint::Ratio(1, 18),
-        Constraint::Ratio(1, 18),
-        Constraint::Ratio(1, 18),
-        Constraint::Ratio(4, 18),
-        Constraint::Ratio(4, 18),
-        Constraint::Ratio(1, 18),
-        Constraint::Ratio(1, 18),
-        Constraint::Ratio(1, 18),
-        Constraint::Ratio(1, 18),
+        Constraint::Length(1),
+        Constraint::Length(1),
+        Constraint::Length(2),
+        Constraint::Length(1),
+        Constraint::Length(2),
+        Constraint::Length(1),
+        Constraint::Fill(2),
+        Constraint::Fill(2),
+        Constraint::Length(1),
+        Constraint::Length(2),
+        Constraint::Length(1),
+        Constraint::Length(2),
+        Constraint::Length(1),
+        Constraint::Length(2),
+        Constraint::Length(1),
     ]);
     let [
         top,
@@ -403,7 +446,10 @@ fn render(
         middle,
         progress,
         input_progress,
-        _empty,
+        path,
+        input_path,
+        repository,
+        input_repository,
         bottom,
     ] = split.areas(inner_area);
 
@@ -451,7 +497,7 @@ fn render(
 
     let middle_spilt = Layout::horizontal([Constraint::Fill(1), Constraint::Fill(1)]);
     let [features, languages] = middle_spilt.areas(middle);
-    let feature_spilt = Layout::vertical([Constraint::Ratio(1, 4), Constraint::Ratio(3, 4)]);
+    let feature_spilt = Layout::vertical([Constraint::Length(1), Constraint::Fill(2)]);
     let [feature, input_features] = feature_spilt.areas(features);
     frame.render_widget(
         Paragraph::new("[4] Features: ").alignment(Alignment::Left),
@@ -464,7 +510,7 @@ fn render(
     );
     frame.render_widget(edt_features.widget(), input_features);
 
-    let language_spilt = Layout::vertical([Constraint::Ratio(1, 4), Constraint::Ratio(3, 4)]);
+    let language_spilt = Layout::vertical([Constraint::Length(1), Constraint::Fill(2)]);
     let [language, input_languages] = language_spilt.areas(languages);
 
     frame.render_widget(
@@ -489,10 +535,33 @@ fn render(
     );
     frame.render_widget(edt_progress.widget(), input_progress);
 
+    frame.render_widget(
+        Paragraph::new("[7] Full Path:").alignment(Alignment::Left),
+        path,
+    );
+    edt_path.set_block(
+        Block::default()
+            .borders(Borders::BOTTOM)
+            .fg(color_switch(switch, colors.clone())[6]),
+    );
+    frame.render_widget(edt_path.widget(), input_path);
+
+    frame.render_widget(
+        Paragraph::new("[8] Repository Link:").alignment(Alignment::Left),
+        repository,
+    );
+    edt_repo.set_block(
+        Block::default()
+            .borders(Borders::BOTTOM)
+            .fg(color_switch(switch, colors.clone())[7]),
+    );
+    frame.render_widget(edt_repo.widget(), input_repository);
+
     let bottom_spilt = Layout::horizontal([Constraint::Fill(1), Constraint::Ratio(1, 10)]);
     let [main, save] = bottom_spilt.areas(bottom);
+    let status = if i == 7 { "Completed" } else { "InCompleted" };
     frame.render_widget(
-        Paragraph::new(format!("FIELDS: {}/6", i)).alignment(Alignment::Center),
+        Paragraph::new(format!("{}", status)).alignment(Alignment::Center),
         main,
     );
     frame.render_widget(

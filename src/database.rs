@@ -9,7 +9,9 @@ pub fn db_setup(data: &str) -> Result<()> {
             title TEXT NOT NULL,
             bDescription TEXT,
             dDescription TEXT,
-            progress TEXT NOT NULL
+            progress TEXT NOT NULL,
+            path TEXT,
+            repository TEXT
         )",
         (),
     )?;
