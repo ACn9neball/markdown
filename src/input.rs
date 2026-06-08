@@ -10,6 +10,8 @@ use ratatui::{
 use ratatui_textarea::TextArea;
 use rusqlite::Connection;
 
+use crate::readme::create;
+
 #[derive(Debug)]
 struct Projects {
     id: i64,
@@ -358,6 +360,7 @@ fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Re
                                     (&language.language, &language.unique_id),
                                 )?;
                             }
+                            create(id).expect("");
                             break;
                         }
                     }

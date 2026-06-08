@@ -2,6 +2,7 @@ mod database;
 mod display;
 mod input;
 mod list;
+mod readme;
 mod search;
 
 use clap::{Parser, Subcommand};
