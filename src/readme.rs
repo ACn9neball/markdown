@@ -184,7 +184,14 @@ cd {}/
 cargo install --path
 {}
 ```"#,
-        title, b_description, d_description, features, languages, repo, title, title
+        title,
+        b_description,
+        d_description,
+        features,
+        languages,
+        repo,
+        title,
+        title.to_lowercase()
     );
     content
 }
