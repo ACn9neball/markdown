@@ -35,9 +35,9 @@ List the programming languages, primary libraries, or frameworks that power the 
 
 | :--- |
 
- | **Rust** |
- | **Ratatui** |
- | **Clap** |
+| **Rust** |
+| **Ratatui** |
+| **Clap** |
 | ---: |
 
 ---
