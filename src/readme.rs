@@ -138,7 +138,9 @@ fn readme_writer(
     for i in 0..feature_list.len() {
         features = format!(
             "{}\n* **Core Feature {}:** {}",
-            features, i, feature_list[i]
+            features,
+            i + 1,
+            feature_list[i]
         );
     }
 
@@ -186,7 +188,7 @@ cargo install --path
 ```"#,
         title,
         b_description,
-        d_description,
+        split(d_description),
         features,
         languages,
         repo,
@@ -194,4 +196,28 @@ cargo install --path
         title.to_lowercase()
     );
     content
+}
+
+pub fn split(description: String) -> String {
+    let mut result = String::new();
+    let mut line_length = 0;
+
+    for word in description.split_whitespace() {
+        let word_len = word.len();
+
+        if line_length == 0 {
+            result.push_str(word);
+            line_length = word_len;
+        } else if line_length + 1 + word_len > 150 {
+            result.push('\n');
+            result.push_str(word);
+            line_length = word_len;
+        } else {
+            result.push(' ');
+            result.push_str(word);
+            line_length += 1 + word_len;
+        }
+    }
+
+    result
 }

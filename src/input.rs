@@ -10,7 +10,7 @@ use ratatui::{
 use ratatui_textarea::TextArea;
 use rusqlite::Connection;
 
-use crate::readme::create;
+use crate::readme::{create, split};
 
 #[derive(Debug)]
 struct Projects {
@@ -98,7 +98,7 @@ fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Re
             let p = project.unwrap();
             edt_title.insert_str(p.title);
             edt_b.insert_str(p.b_description);
-            edt_d.insert_str(p.d_description);
+            edt_d.insert_str(split(p.d_description));
             edt_progress.insert_str(p.progress);
             edt_path.insert_str(p.path);
             edt_repository.insert_str(p.repository);
@@ -164,7 +164,6 @@ fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Re
                         let languages_text = edt_languages.lines().join("\n");
                         let progress_text = edt_progress.lines().join("\n");
                         let path_text = edt_path.lines().join("\n");
-                        let repository_text = edt_repository.lines().join("\n");
                         count = 0;
 
                         if !title_text.is_empty() {
@@ -204,7 +203,6 @@ fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Re
                         let languages_text = edt_languages.lines().join("\n");
                         let progress_text = edt_progress.lines().join("\n");
                         let path_text = edt_path.lines().join("\n");
-                        let repository_text = edt_repository.lines().join("\n");
                         count = 0;
 
                         if !title_text.is_empty() {
@@ -271,7 +269,7 @@ fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Re
                             if function == 0 {
                                 c.execute(
                                 "INSERT INTO projects (title, bDescription, dDescription, progress, path, repository) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-                                (&project.title, &project.b_description, &project.d_description, &project.progress, &project.path, &project.repository,),
+                                (&project.title, &project.b_description, split(project.d_description), &project.progress, &project.path, &project.repository,),
                             )?;
                             } else if function == 1 {
                                 c.execute(
@@ -287,7 +285,7 @@ fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Re
                                         id,
                                         &project.title,
                                         &project.b_description,
-                                        &project.d_description,
+                                        split(project.d_description),
                                         &project.progress,
                                         &project.path,
                                         &project.repository,
@@ -423,35 +421,23 @@ fn render(
 
     let split = Layout::vertical([
         Constraint::Length(1),
-        Constraint::Length(1),
-        Constraint::Length(2),
-        Constraint::Length(1),
-        Constraint::Length(2),
-        Constraint::Length(1),
+        Constraint::Length(3),
+        Constraint::Length(3),
         Constraint::Fill(2),
         Constraint::Fill(2),
-        Constraint::Length(1),
-        Constraint::Length(2),
-        Constraint::Length(1),
-        Constraint::Length(2),
-        Constraint::Length(1),
-        Constraint::Length(2),
+        Constraint::Length(3),
+        Constraint::Length(3),
+        Constraint::Length(3),
         Constraint::Length(1),
     ]);
     let [
         top,
-        title,
         input_title,
-        basic_description,
         input_b_description,
-        detailed_description,
         input_d_description,
         middle,
-        progress,
         input_progress,
-        path,
         input_path,
-        repository,
         input_repository,
         bottom,
     ] = split.areas(inner_area);
@@ -465,97 +451,68 @@ fn render(
     );
     frame.render_widget(Paragraph::new("[1/100]").alignment(Alignment::Right), count);
 
-    frame.render_widget(
-        Paragraph::new("[1] Project Title").alignment(Alignment::Left),
-        title,
-    );
     edt_title.set_block(
         Block::default()
             .borders(Borders::BOTTOM)
+            .title("[1] Project Title")
             .fg(color_switch(switch, colors.clone())[0]),
     );
     frame.render_widget(edt_title.widget(), input_title);
 
-    frame.render_widget(
-        Paragraph::new("[2] Basic Description").alignment(Alignment::Left),
-        basic_description,
-    );
     edt_b.set_block(
         Block::default()
             .borders(Borders::BOTTOM)
+            .title("[2] Basic Description")
             .fg(color_switch(switch, colors.clone())[1]),
     );
     frame.render_widget(edt_b.widget(), input_b_description);
 
-    frame.render_widget(
-        Paragraph::new("[3] Detailed Description").alignment(Alignment::Left),
-        detailed_description,
-    );
     edt_d.set_block(
         Block::default()
             .borders(Borders::ALL)
+            .title("[3] Detailed Description")
             .fg(color_switch(switch, colors.clone())[2]),
     );
     frame.render_widget(edt_d.widget(), input_d_description);
 
     let middle_spilt = Layout::horizontal([Constraint::Fill(1), Constraint::Fill(1)]);
     let [features, languages] = middle_spilt.areas(middle);
-    let feature_spilt = Layout::vertical([Constraint::Length(1), Constraint::Fill(2)]);
-    let [feature, input_features] = feature_spilt.areas(features);
-    frame.render_widget(
-        Paragraph::new("[4] Features: ").alignment(Alignment::Left),
-        feature,
-    );
     edt_features.set_block(
         Block::default()
             .borders(Borders::ALL)
+            .title("[4] Features")
             .fg(color_switch(switch, colors.clone())[3]),
     );
-    frame.render_widget(edt_features.widget(), input_features);
+    frame.render_widget(edt_features.widget(), features);
 
-    let language_spilt = Layout::vertical([Constraint::Length(1), Constraint::Fill(2)]);
-    let [language, input_languages] = language_spilt.areas(languages);
-
-    frame.render_widget(
-        Paragraph::new("[5] Languages:").alignment(Alignment::Left),
-        language,
-    );
     edt_languages.set_block(
         Block::default()
             .borders(Borders::ALL)
+            .title("[5] Languages")
             .fg(color_switch(switch, colors.clone())[4]),
     );
-    frame.render_widget(edt_languages.widget(), input_languages);
+    frame.render_widget(edt_languages.widget(), languages);
 
-    frame.render_widget(
-        Paragraph::new("[6] Progress:").alignment(Alignment::Left),
-        progress,
-    );
     edt_progress.set_block(
         Block::default()
             .borders(Borders::BOTTOM)
+            .title("[6] Progress")
             .fg(color_switch(switch, colors.clone())[5]),
     );
     frame.render_widget(edt_progress.widget(), input_progress);
 
-    frame.render_widget(
-        Paragraph::new("[7] Full Path:").alignment(Alignment::Left),
-        path,
-    );
     edt_path.set_block(
         Block::default()
             .borders(Borders::BOTTOM)
+            .title("[7] Full Path")
             .fg(color_switch(switch, colors.clone())[6]),
     );
     frame.render_widget(edt_path.widget(), input_path);
 
-    frame.render_widget(
-        Paragraph::new("[8] Repository Link:").alignment(Alignment::Left),
-        repository,
-    );
     edt_repo.set_block(
         Block::default()
             .borders(Borders::BOTTOM)
+            .title("[8] Repository Link")
             .fg(color_switch(switch, colors.clone())[7]),
     );
     frame.render_widget(edt_repo.widget(), input_repository);
