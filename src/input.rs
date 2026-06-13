@@ -21,6 +21,7 @@ struct Projects {
     progress: String,
     path: String,
     repository: String,
+    purpose: String,
 }
 
 #[derive(Debug)]
@@ -51,7 +52,7 @@ pub fn start(function: i64, id: i64) -> color_eyre::Result<()> {
 
 fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Result<()> {
     let mut switch: usize = 0;
-    let mut count = 0;
+    let mut complete = false;
     let mut edt_title = TextArea::default();
     let mut edt_b = TextArea::default();
     let mut edt_d = TextArea::default();
@@ -60,6 +61,7 @@ fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Re
     let mut edt_progress = TextArea::default();
     let mut edt_path = TextArea::default();
     let mut edt_repository = TextArea::default();
+    let mut edt_purpose = TextArea::default();
 
     if function == 1 {
         let c = Connection::open(DB)?;
@@ -75,6 +77,7 @@ fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Re
                 progress: row.get(4)?,
                 path: row.get(5)?,
                 repository: row.get(6)?,
+                purpose: row.get(7)?,
             })
         })?;
 
@@ -102,6 +105,7 @@ fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Re
             edt_progress.insert_str(p.progress);
             edt_path.insert_str(p.path);
             edt_repository.insert_str(p.repository);
+            edt_purpose.insert_str(p.purpose);
         }
 
         for language in language_iter {
@@ -132,6 +136,7 @@ fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Re
         Color::Reset,
         Color::Reset,
         Color::Reset,
+        Color::Reset,
     ];
 
     loop {
@@ -146,7 +151,8 @@ fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Re
                 &mut edt_progress,
                 &mut edt_path,
                 &mut edt_repository,
-                count,
+                &mut edt_purpose,
+                complete,
                 switch,
                 colors.clone(),
             )
@@ -157,38 +163,7 @@ fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Re
                 match key.code {
                     KeyCode::Esc => break,
                     KeyCode::Tab => {
-                        let title_text = edt_title.lines().join("\n");
-                        let basic_text = edt_b.lines().join("\n");
-                        let detailed_text = edt_d.lines().join("\n");
-                        let features_text = edt_features.lines().join("\n");
-                        let languages_text = edt_languages.lines().join("\n");
-                        let progress_text = edt_progress.lines().join("\n");
-                        let path_text = edt_path.lines().join("\n");
-                        count = 0;
-
-                        if !title_text.is_empty() {
-                            count += 1;
-                        }
-                        if !basic_text.is_empty() {
-                            count += 1;
-                        }
-                        if !detailed_text.is_empty() {
-                            count += 1;
-                        }
-                        if !features_text.is_empty() {
-                            count += 1;
-                        }
-                        if !languages_text.is_empty() {
-                            count += 1;
-                        }
-                        if !progress_text.is_empty() {
-                            count += 1;
-                        }
-                        if !path_text.is_empty() {
-                            count += 1;
-                        }
-
-                        if switch != 7 {
+                        if switch != 8 {
                             switch += 1;
                         } else {
                             switch = 0;
@@ -196,54 +171,38 @@ fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Re
                         continue;
                     }
                     KeyCode::BackTab => {
-                        let title_text = edt_title.lines().join("\n");
-                        let basic_text = edt_b.lines().join("\n");
-                        let detailed_text = edt_d.lines().join("\n");
-                        let features_text = edt_features.lines().join("\n");
-                        let languages_text = edt_languages.lines().join("\n");
-                        let progress_text = edt_progress.lines().join("\n");
-                        let path_text = edt_path.lines().join("\n");
-                        count = 0;
-
-                        if !title_text.is_empty() {
-                            count += 1;
-                        }
-                        if !basic_text.is_empty() {
-                            count += 1;
-                        }
-                        if !detailed_text.is_empty() {
-                            count += 1;
-                        }
-                        if !features_text.is_empty() {
-                            count += 1;
-                        }
-                        if !languages_text.is_empty() {
-                            count += 1;
-                        }
-                        if !progress_text.is_empty() {
-                            count += 1;
-                        }
-                        if !path_text.is_empty() {
-                            count += 1;
-                        }
                         if switch != 0 {
                             switch -= 1;
                         } else {
-                            switch = 7;
+                            switch = 8;
                         }
                         continue;
                     }
                     KeyCode::Char('s') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                        if count == 7 {
-                            let title = edt_title.lines().join("\n");
-                            let basic = edt_b.lines().join("\n");
-                            let detailed = edt_d.lines().join("\n");
-                            let features = edt_features.lines().join("\n");
-                            let languages = edt_languages.lines().join("\n");
-                            let progress = edt_progress.lines().join("\n");
-                            let path = edt_path.lines().join("\n");
-                            let repository = edt_repository.lines().join("\n");
+                        let title = edt_title.lines().join("\n");
+                        let basic = edt_b.lines().join("\n");
+                        let detailed = edt_d.lines().join("\n");
+                        let features = edt_features.lines().join("\n");
+                        let languages = edt_languages.lines().join("\n");
+                        let progress = edt_progress.lines().join("\n");
+                        let path = edt_path.lines().join("\n");
+                        let repository = edt_repository.lines().join("\n");
+                        let purpose = edt_purpose.lines().join("\n");
 
+                        if !title.is_empty()
+                            && !basic.is_empty()
+                            && !detailed.is_empty()
+                            && !features.is_empty()
+                            && !languages.is_empty()
+                            && !progress.is_empty()
+                            && !purpose.is_empty()
+                        {
+                            complete = true;
+                        } else {
+                            complete = false;
+                        }
+
+                        if complete == true {
                             let c = Connection::open(DB)?;
                             let project = Projects {
                                 id: 0,
@@ -253,6 +212,7 @@ fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Re
                                 progress: progress,
                                 path: path,
                                 repository: repository,
+                                purpose: purpose,
                             };
                             let mut projects = c.prepare("SELECT * FROM projects")?;
                             let project_iter = projects.query_map([], |row| {
@@ -264,12 +224,13 @@ fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Re
                                     progress: row.get(4)?,
                                     path: row.get(5)?,
                                     repository: row.get(6)?,
+                                    purpose: row.get(7)?,
                                 })
                             })?;
                             if function == 0 {
                                 c.execute(
-                                "INSERT INTO projects (title, bDescription, dDescription, progress, path, repository) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-                                (&project.title, &project.b_description, split(project.d_description), &project.progress, &project.path, &project.repository,),
+                                "INSERT INTO projects (title, bDescription, dDescription, progress, path, repository, purpose) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+                                (&project.title, &project.b_description, split(project.d_description), &project.progress, &project.path, &project.repository, &project.purpose),
                             )?;
                             } else if function == 1 {
                                 c.execute(
@@ -279,7 +240,8 @@ fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Re
                                     dDescription = COALESCE(NULLIF(?4, ''),  dDescription),
                                     progress = COALESCE(NULLIF(?5, ''), progress),
                                     path = COALESCE(NULLIF(?6, ''), path),
-                                    repository = COALESCE(NULLIF(?7, ''), repository)
+                                    repository = COALESCE(NULLIF(?7, ''), repository),
+                                    purpose = COALESCE(NULLIF(?8, ''), purpose)
                                     WHERE id = ?1",
                                     (
                                         id,
@@ -289,6 +251,7 @@ fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Re
                                         &project.progress,
                                         &project.path,
                                         &project.repository,
+                                        &project.purpose,
                                     ),
                                 )?;
                             }
@@ -362,33 +325,59 @@ fn run(terminal: &mut DefaultTerminal, function: i64, id: i64) -> color_eyre::Re
                             break;
                         }
                     }
-                    _ => match switch {
-                        0 => {
-                            edt_title.input(key);
+                    _ => {
+                        let title = edt_title.lines().join("\n");
+                        let basic = edt_b.lines().join("\n");
+                        let detailed = edt_d.lines().join("\n");
+                        let features = edt_features.lines().join("\n");
+                        let languages = edt_languages.lines().join("\n");
+                        let progress = edt_progress.lines().join("\n");
+                        let purpose = edt_purpose.lines().join("\n");
+
+                        if !title.is_empty()
+                            && !basic.is_empty()
+                            && !detailed.is_empty()
+                            && !features.is_empty()
+                            && !languages.is_empty()
+                            && !progress.is_empty()
+                            && !purpose.is_empty()
+                        {
+                            complete = true;
+                        } else {
+                            complete = false;
                         }
-                        1 => {
-                            edt_b.input(key);
-                        }
-                        2 => {
-                            edt_d.input(key);
-                        }
-                        3 => {
-                            edt_features.input(key);
-                        }
-                        4 => {
-                            edt_languages.input(key);
-                        }
-                        5 => {
-                            edt_progress.input(key);
-                        }
-                        6 => {
-                            edt_path.input(key);
-                        }
-                        7 => {
-                            edt_repository.input(key);
-                        }
-                        _ => {}
-                    },
+
+                        match switch {
+                            0 => {
+                                edt_title.input(key);
+                            }
+                            1 => {
+                                edt_b.input(key);
+                            }
+                            2 => {
+                                edt_d.input(key);
+                            }
+                            3 => {
+                                edt_features.input(key);
+                            }
+                            4 => {
+                                edt_languages.input(key);
+                            }
+                            5 => {
+                                edt_progress.input(key);
+                            }
+                            6 => {
+                                edt_purpose.input(key);
+                            }
+                            7 => {
+                                edt_path.input(key);
+                            }
+                            8 => {
+                                edt_repository.input(key);
+                            }
+                            _ => {}
+                        };
+                    }
                 }
             }
         }
@@ -406,7 +395,8 @@ fn render(
     edt_progress: &mut TextArea,
     edt_path: &mut TextArea,
     edt_repo: &mut TextArea,
-    i: usize,
+    edt_purpose: &mut TextArea,
+    complete: bool,
     switch: usize,
     colors: Vec<Color>,
 ) {
@@ -428,6 +418,7 @@ fn render(
         Constraint::Length(3),
         Constraint::Length(3),
         Constraint::Length(3),
+        Constraint::Length(3),
         Constraint::Length(1),
     ]);
     let [
@@ -437,6 +428,7 @@ fn render(
         input_d_description,
         middle,
         input_progress,
+        input_purpose,
         input_path,
         input_repository,
         bottom,
@@ -501,25 +493,37 @@ fn render(
     );
     frame.render_widget(edt_progress.widget(), input_progress);
 
+    edt_purpose.set_block(
+        Block::default()
+            .borders(Borders::BOTTOM)
+            .title("[7] Purpose")
+            .fg(color_switch(switch, colors.clone())[6]),
+    );
+    frame.render_widget(edt_purpose.widget(), input_purpose);
+
     edt_path.set_block(
         Block::default()
             .borders(Borders::BOTTOM)
-            .title("[7] Full Path")
-            .fg(color_switch(switch, colors.clone())[6]),
+            .title("[8] Full Path")
+            .fg(color_switch(switch, colors.clone())[7]),
     );
     frame.render_widget(edt_path.widget(), input_path);
 
     edt_repo.set_block(
         Block::default()
             .borders(Borders::BOTTOM)
-            .title("[8] Repository Link")
-            .fg(color_switch(switch, colors.clone())[7]),
+            .title("[9] Repository Link")
+            .fg(color_switch(switch, colors.clone())[8]),
     );
     frame.render_widget(edt_repo.widget(), input_repository);
 
     let bottom_spilt = Layout::horizontal([Constraint::Fill(1), Constraint::Ratio(1, 10)]);
     let [main, save] = bottom_spilt.areas(bottom);
-    let status = if i == 7 { "Completed" } else { "InCompleted" };
+    let status = if complete == true {
+        "Completed"
+    } else {
+        "InCompleted"
+    };
     frame.render_widget(
         Paragraph::new(format!("{}", status)).alignment(Alignment::Center),
         main,

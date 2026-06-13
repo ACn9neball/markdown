@@ -11,7 +11,8 @@ pub fn db_setup(data: &str) -> Result<()> {
             dDescription TEXT,
             progress TEXT NOT NULL,
             path TEXT,
-            repository TEXT
+            repository TEXT,
+            purpose TEXT NOT NULL
         )",
         (),
     )?;

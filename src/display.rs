@@ -11,6 +11,7 @@ struct Projects {
     progress: String,
     path: String,
     repository: String,
+    purpose: String,
 }
 
 #[derive(Debug)]
@@ -42,6 +43,7 @@ pub fn view(id: i64) -> Result<()> {
             progress: row.get(4)?,
             path: row.get(5)?,
             repository: row.get(6)?,
+            purpose: row.get(7)?,
         })
     })?;
 
@@ -68,6 +70,7 @@ pub fn view(id: i64) -> Result<()> {
             println!("{:=^40}", " Project Details ");
             println!("{:<20} {}", "Title:", p.title);
             println!("{:<20} {}", "Progress:", p.progress);
+            println!("{:<20} {}", "Purpose:", p.purpose);
             println!("{:-<40}", "");
             println!("Basic Description:\n  {}", p.b_description);
             println!("\nDetailed Description:\n  {}", p.d_description);

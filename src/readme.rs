@@ -14,6 +14,7 @@ struct Projects {
     _progress: String,
     path: String,
     repository: String,
+    purpose: String,
 }
 
 #[derive(Debug)]
@@ -36,6 +37,7 @@ pub fn create(id: i64) -> Result<()> {
     let mut detailed_description = String::new();
     let mut directory = String::new();
     let mut repository = String::new();
+    let mut purpose = String::new();
     let mut language_list: Vec<String> = vec![];
     let mut feature_list: Vec<String> = vec![];
 
@@ -53,6 +55,7 @@ pub fn create(id: i64) -> Result<()> {
             _progress: row.get(4)?,
             path: row.get(5)?,
             repository: row.get(6)?,
+            purpose: row.get(7)?,
         })
     })?;
 
@@ -79,6 +82,7 @@ pub fn create(id: i64) -> Result<()> {
         detailed_description = p.d_description;
         directory = p.path;
         repository = p.repository;
+        purpose = p.purpose;
     }
 
     for language in language_iter {
@@ -104,6 +108,7 @@ pub fn create(id: i64) -> Result<()> {
         language_list,
         feature_list,
         repository,
+        purpose,
     );
 
     if !directory.is_empty() {
@@ -128,6 +133,7 @@ fn readme_writer(
     language_list: Vec<String>,
     feature_list: Vec<String>,
     repo: String,
+    purpose: String,
 ) -> String {
     let mut languages = String::new();
     for language in language_list {
@@ -143,9 +149,10 @@ fn readme_writer(
             feature_list[i]
         );
     }
-
-    let content = format!(
-        r#"# {}
+    let content = match purpose.as_str() {
+        "Personal" => {
+            format!(
+                r#"# {}
 
 ---
 
@@ -186,15 +193,92 @@ cd {}/
 cargo install --path
 {}
 ```"#,
-        title,
-        b_description,
-        split(d_description),
-        features,
-        languages,
-        repo,
-        title,
-        title.to_lowercase()
-    );
+                title,
+                b_description,
+                split(d_description),
+                features,
+                languages,
+                repo,
+                title,
+                title.to_lowercase()
+            )
+        }
+        "School" => String::new(),
+        "Work" => {
+            format!(
+                r#"
+# {}
+
+{}
+
+## Description
+
+{}
+
+## Getting Started
+
+### Dependencies
+
+* Describe any prerequisites, libraries, OS version, etc., needed before installing program.
+* ex. Windows 10
+
+### Installing
+
+* How/where to download your program
+* Any modifications needed to be made to files/folders
+
+### Executing program
+
+* How to run the program
+* Step-by-step bullets
+```
+git clone {}
+cd {}/
+cargo install --path
+{}
+```
+
+## Help
+
+Any advise for common problems or issues.
+```
+command to run if program contains helper info
+```
+
+## Authors
+
+Contributors names and contact info
+
+ex. N9neball
+ex. [@DomPizzie](https://twitter.com/dompizzie)
+
+## Version History
+
+* 0.2
+    * Various bug fixes and optimizations
+    * See [commit change]() or See [release history]()
+* 0.1
+    * Initial Release
+
+## License
+
+This project is licensed under the [NAME HERE] License - see the LICENSE.md file for details
+
+## Acknowledgments
+
+Inspiration, code snippets, etc.
+            "#,
+                title,
+                b_description,
+                split(d_description),
+                repo,
+                title,
+                title.to_lowercase(),
+            )
+        }
+        _ => String::new(),
+    };
+
     content
 }
 
